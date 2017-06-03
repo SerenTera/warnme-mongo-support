@@ -5,17 +5,23 @@ Template IDs: Bluebox-88888888 | Caiman-99999999,99999991,99999992 | unknown for
 */
 
 const mobzone = [1023], //zone ids of mobs
-	mobtemplate = [88888888];  //template ids of mobs, incl big/rare mongo here
-	//mongosmall = [];	//small mongo templates
+	mobtemplate = [88888888];  //template ids of mobs, incl general rare mongo here (spawns anywhere)
+	mongoloc[0] = [],	//[0]....[x]= position on the zone id, []=[smallmongoid,raremongoid,superiormongoid] => specific area mongos only.
+	mongoloc[1] = []; //repeat lines for x number of zones 
+							
+	zonelist=[]; //zonelist, list of zone of where mongo is found, where zone is the zone in mongoloc.zone. 
+	zoneid=[];//list of corresponding zone id to zonelist
 	
 	custommsg= 'Bluebox' //change custom message here
 	
 module.exports = function warnme(dispatch) {
+	let zoneno,
+		newmobtemplate,
+		zonename;
 	
 	let enabled=false,
-		alerted=false;
-		//mongo=true,
-		//mobtemplatenew=mobtemplate.concat(mongosmall); //if smallmongo array is used, change array in S_SPAWN_NPC to mobtemplatenew
+		alerted=false	
+		mongo=true;
 	
 	dispatch.hook('C_CHAT', 1, event => {
 		if(/^<FONT>!warn on<\/FONT>$/i.test(event.message)) {
@@ -38,34 +44,45 @@ module.exports = function warnme(dispatch) {
 				message('Warnme alerts disabled');
 		};
 		
-		/*if(/^<FONT>!warn mongo<\/FONT>$/i.test(event.message)) {
+		if(/^<FONT>!warn mongo<\/FONT>$/i.test(event.message)) {
 			if(!mongo) {
 				mongo=false,
-				mobtemplatenew=mobtemplate,
 				message('Warnme small mongo ignored');
 			}
 			else
 				mongo=true,
-				mobtemplatenew=mobtemplate.concat(mongosmall),
 				message('Warnme small mongo enabled');
-		}; */
+		}; 
 		
 		if(event.message.includes('!warn'))
 			return false;
 	});
 	
+	dispatch.hook('S_LOAD_TOPO', 1, (event) => {      
+		if(enabled && zoneid.includes(event.zone)) {
+			zoneno=zoneid.indexOf(event.zone),
+			zonename=zonelist[(zoneno)];
+			message('Warnme entered mongo zone'+' '+zonename)
+			newmobtemplate=((mongoloc[zoneno]).concat(mobtemplate))
+		};
+    });
+	
 	dispatch.hook('S_SPAWN_NPC', 3, (event) => {
-		if(enabled && (mobzone.includes(event.huntingZoneId) && mobtemplate.includes(event.templateId))) {
+		if(enabled && !mongo) {
+			newmobtemplate.shift(),
+		};
+			
+		if(enabled && (mobzone.includes(event.huntingZoneId) && mobtemplate.includes(event.templateId))) {		
 			if(alerted) {
 				notice('Found'+' '+custommsg),
 				message('Found'+' '+custommsg);
 			}
 			else
 				message('Found'+' '+custommsg);
-		}
+		};
 	});
 	
-	
+		
 	function message(msg) {
 		dispatch.toClient('S_CHAT', 1, {
 			channel: 24,
