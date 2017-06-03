@@ -72,7 +72,7 @@ module.exports = function warnme(dispatch) {
 			newmobtemplate.shift(),
 		};
 			
-		if(enabled && (mobzone.includes(event.huntingZoneId) && mobtemplate.includes(event.templateId))) {		
+		if(enabled && (mobzone.includes(event.huntingZoneId) && newmobtemplate.includes(event.templateId))) {		
 			if(alerted) {
 				notice('Found'+' '+custommsg),
 				message('Found'+' '+custommsg);
